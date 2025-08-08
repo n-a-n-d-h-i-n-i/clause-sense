@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { CheckCircle, XCircle, ChevronRight, FileText, ExternalLink } from 'lucide-react';
 import type { Clause, Decision } from '../App';
 
+const API_BASE = import.meta.env.VITE_API_BASE || ''; // Works local & deployed
+
 interface ResultsSectionProps {
   clauses: Clause[];
   decision: Decision;
@@ -53,21 +55,10 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
     return acc;
   }, {} as Record<string, Clause[]>);
 
-  const renderJustificationWithLinks = (justification: string) => {
-    // Find clause references in the justification text
-    const clauseRefs = clauses.map(c => c.clause_ref);
-    let result = justification;
-    
-    clauseRefs.forEach(ref => {
-      if (result.includes(ref)) {
-        result = result.replace(
-          ref,
-          `<button class="text-gold-accent hover:underline font-medium cursor-pointer" onclick="handleClauseClick('${ref}')">${ref}</button>`
-        );
-      }
-    });
-    
-    return result;
+  // Function to handle opening the full doc
+  const handleViewFullDoc = (dataset: string, clauseRef: string) => {
+    const url = `${API_BASE}/api/clause/${encodeURIComponent(dataset)}/${encodeURIComponent(clauseRef)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -79,7 +70,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
             <h3 className="font-serif text-2xl font-bold text-navy-dark mb-6">
               Retrieved Clauses
             </h3>
-            
+
             {Object.entries(groupedClauses).map(([dataset, datasetClauses], datasetIndex) => (
               <div key={dataset} className="space-y-4">
                 {/* Dataset Header */}
@@ -89,7 +80,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
                     {dataset}
                   </h4>
                 </div>
-                
+
                 {/* Clauses in this dataset */}
                 {datasetClauses.map((clause, clauseIndex) => (
                   <div
@@ -100,13 +91,18 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
                         ? 'animate-highlight-flash bg-clause-highlight'
                         : ''
                     }`}
-                    style={{ animationDelay: `${(datasetIndex * datasetClauses.length + clauseIndex) * 150}ms` }}
+                    style={{
+                      animationDelay: `${(datasetIndex * datasetClauses.length + clauseIndex) * 150}ms`,
+                    }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h5 className="font-semibold text-navy-dark">
                         {clause.clause_ref}
                       </h5>
-                      <button className="flex items-center space-x-1 text-sm text-gold-accent hover:underline">
+                      <button
+                        className="flex items-center space-x-1 text-sm text-gold-accent hover:underline"
+                        onClick={() => handleViewFullDoc(clause.dataset, clause.clause_ref)}
+                      >
                         <span>View in full doc</span>
                         <ExternalLink className="w-3 h-3" />
                       </button>
@@ -146,10 +142,11 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
                 <h4 className="font-semibold text-navy-dark mb-3">Justification</h4>
                 <div className="text-navy-dark/80 leading-relaxed">
                   {decision.justification.split(/(\([^)]+\)|Section [^,]+|Clause [^,]+)/).map((part, index) => {
-                    const matchingClause = clauses.find(clause => 
-                      part.includes(clause.clause_ref) || clause.clause_ref.includes(part.trim())
+                    const matchingClause = clauses.find(
+                      (clause) =>
+                        part.includes(clause.clause_ref) || clause.clause_ref.includes(part.trim())
                     );
-                    
+
                     if (matchingClause) {
                       return (
                         <button

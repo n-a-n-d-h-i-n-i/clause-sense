@@ -30,10 +30,13 @@ export interface Clause extends ClauseData {
 }
 
 export interface Decision {
-  status: 'Approved' | 'Rejected';
+  status: 'Approved' | 'Rejected' | 'Pending';
   amount?: string;
   justification: string;
 }
+
+// ✅ Use env var for backend URL (Render/Netlify) or fallback to local
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
 
 function App() {
   const [parsedQuery, setParsedQuery] = useState<ParsedQuery>({});
@@ -55,7 +58,7 @@ function App() {
     setShowResults(false);
 
     try {
-      const res = await fetch("http://localhost:8080/api/search", {
+      const res = await fetch(`${API_BASE}/api/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery }),
@@ -125,3 +128,4 @@ function App() {
 }
 
 export default App;
+
