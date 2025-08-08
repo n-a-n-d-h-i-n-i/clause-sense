@@ -35,8 +35,8 @@ export interface Decision {
   justification: string;
 }
 
-// ✅ Use env var for backend URL (Render/Netlify) or fallback to local
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
+// ✅ Backend base URL from env var (Netlify) or fallback to localhost
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 function App() {
   const [parsedQuery, setParsedQuery] = useState<ParsedQuery>({});
@@ -128,4 +128,5 @@ function App() {
 }
 
 export default App;
+
 
