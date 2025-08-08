@@ -8,7 +8,12 @@ import { pipeline } from "@xenova/transformers";
 import mongoose from 'mongoose';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://clause-sense-1.netlify.app"],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
 // -------------------- CONFIG --------------------
@@ -224,6 +229,9 @@ if (fs.existsSync(frontendPath)) {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
+// -------------------- FULL CLAUSE ROUTE --------------------
+
+
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
